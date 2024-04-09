@@ -43,7 +43,11 @@ const val CLICK_MINUS_15 = "jatx.audiobookplayer.CLICK_MINUS_15"
 const val CLICK_PROGRESS = "jatx.audiobookplayer.CLICK_PROGRESS"
 const val CLICK_PLAYLIST_ITEM = "jatx.audiobookplayer.CLICK_PLAYLIST_ITEM"
 
+const val NOTIFY_PROGRESS = "jatx.audiobookplayer.NOTIFY_PROGRESS"
+const val NOTIFY_DURATION = "jatx.audiobookplayer.NOTIFY_DURATION"
+
 const val KEY_PROGRESS = "progress"
+const val KEY_DURATION = "duration"
 const val KEY_NAME = "name"
 const val KEY_URI = "uri"
 
@@ -174,7 +178,7 @@ class MainActivity : FragmentActivity() {
         if (playlistName != AppState.playlistName.value) {
             stopAndReleasePlayer()
             cleanPlaylistDir()
-            progressChanged(0, 1)
+            notifyProgress(0, 1)
             AppState.updatePlaylistName(playlistName)
         }
         val action = LibraryFragmentDirections.actionLibraryFragmentToPlaylistFragment()
@@ -221,6 +225,19 @@ class MainActivity : FragmentActivity() {
     private fun clickProgress(progress: Int) {
         val intent = Intent(CLICK_PROGRESS)
         intent.putExtra(KEY_PROGRESS, progress)
+        sendBroadcast(intent)
+    }
+
+    private fun notifyProgress(progress: Int, duration: Int) {
+        val intent = Intent(NOTIFY_PROGRESS)
+        intent.putExtra(KEY_PROGRESS, progress)
+        intent.putExtra(KEY_DURATION, duration)
+        sendBroadcast(intent)
+    }
+
+    private fun notifyDuration(duration: Int) {
+        val intent = Intent(NOTIFY_DURATION)
+        intent.putExtra(KEY_DURATION, duration)
         sendBroadcast(intent)
     }
 
@@ -295,6 +312,25 @@ class MainActivity : FragmentActivity() {
         }
         registerExportedReceiver(clickPlaylistItemReceiver, IntentFilter(CLICK_PLAYLIST_ITEM))
         broadcastReceivers.add(clickPlaylistItemReceiver)
+
+        val notifyProgressReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val progress = intent?.getIntExtra(KEY_PROGRESS, 0) ?: 0
+                val duration = intent?.getIntExtra(KEY_DURATION, 0) ?: 0
+                progressChangedByPlayer(progress, duration)
+            }
+        }
+        registerExportedReceiver(notifyProgressReceiver, IntentFilter(NOTIFY_PROGRESS))
+        broadcastReceivers.add(notifyProgressReceiver)
+
+        val notifyDurationReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val duration = intent?.getIntExtra(KEY_DURATION, 0) ?: 0
+                durationChanged(duration)
+            }
+        }
+        registerExportedReceiver(notifyDurationReceiver, IntentFilter(NOTIFY_DURATION))
+        broadcastReceivers.add(notifyDurationReceiver)
     }
 
     private fun unregisterReceivers() {
@@ -461,7 +497,7 @@ class MainActivity : FragmentActivity() {
                     progress = null
                 }
                 val duration = mediaPlayer?.duration ?: 0
-                durationChanged(duration)
+                notifyDuration(duration)
                 progress?.let {
                     val progressMs = ((it * duration).toInt() - 3000).takeIf { it >= 0 } ?: 0
                     mediaPlayer?.seekTo(progressMs)
@@ -478,8 +514,8 @@ class MainActivity : FragmentActivity() {
                 delay(50L)
                 withContext(Dispatchers.Main) {
                     val currentPosition = mediaPlayer?.currentPosition ?: 0
-                    val duration = mediaPlayer?.duration
-                    progressChanged(currentPosition, duration)
+                    val duration = mediaPlayer?.duration ?: 0
+                    notifyProgress(currentPosition, duration)
                 }
             }
         }
@@ -555,8 +591,8 @@ class MainActivity : FragmentActivity() {
         progressChangedByUser(newPosition)
     }
 
-    private fun progressChanged(currentPosition: Int, duration: Int?) {
-        duration?.let {
+    private fun progressChangedByPlayer(currentPosition: Int, duration: Int) {
+        duration.takeIf { it > 0 } ?.let {
             progress = 1f * currentPosition / duration
         }
         binding.seekBar.progress = currentPosition
