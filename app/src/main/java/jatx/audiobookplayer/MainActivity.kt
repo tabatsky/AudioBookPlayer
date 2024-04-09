@@ -44,7 +44,7 @@ const val CLICK_PROGRESS = "jatx.audiobookplayer.CLICK_PROGRESS"
 const val CLICK_PLAYLIST_ITEM = "jatx.audiobookplayer.CLICK_PLAYLIST_ITEM"
 
 const val KEY_PROGRESS = "progress"
-const val KEY_NAME = "progress"
+const val KEY_NAME = "name"
 const val KEY_URI = "uri"
 
 class MainActivity : FragmentActivity() {
