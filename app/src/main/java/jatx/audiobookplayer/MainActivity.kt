@@ -10,10 +10,10 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.view.View
 import android.widget.NumberPicker
 import android.widget.SeekBar
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
@@ -71,6 +71,8 @@ class MainActivity : FragmentActivity() {
 
     private val broadcastReceivers = arrayListOf<BroadcastReceiver>()
 
+    private val viewModel: MainViewModel by viewModels()
+
     private var tempo: Double = 1.0
         set(value) {
             if (value != field) {
@@ -112,6 +114,9 @@ class MainActivity : FragmentActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
+        binding.lifecycleOwner = this
+        binding.viewModel = viewModel
 
         binding.btnOpenDir.setOnClickListener {
             openDirResultLauncher.launch(App.settings.audioBooksDirUri)
@@ -521,31 +526,25 @@ class MainActivity : FragmentActivity() {
         }
 
         isPlaying = true
-
-        binding.btnPlay.visibility = View.GONE
-        binding.btnPause.visibility = View.VISIBLE
+        AppState.updateIsPlaying(true)
     }
 
     private fun stopAndReleasePlayer() {
         isPlaying = false
+        AppState.updateIsPlaying(false)
 
         progressJob?.cancel()
 
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
-
-        binding.btnPlay.visibility = View.VISIBLE
-        binding.btnPause.visibility = View.GONE
     }
 
     private fun pausePlayer() {
         isPlaying = false
+        AppState.updateIsPlaying(false)
 
         mediaPlayer?.pause()
-
-        binding.btnPlay.visibility = View.VISIBLE
-        binding.btnPause.visibility = View.GONE
     }
 
     private fun nextPlaylistItem() {

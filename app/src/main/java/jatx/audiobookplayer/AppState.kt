@@ -54,6 +54,13 @@ object AppState {
         }
     }
 
+    private val _isPlaying = MutableLiveData(false)
+    val isPlaying: LiveData<Boolean> = _isPlaying
+
+    fun updateIsPlaying(value: Boolean) {
+        _isPlaying.value = value
+    }
+
     fun updatePlaylistName(name: String) {
         _playlistName.value = name
     }

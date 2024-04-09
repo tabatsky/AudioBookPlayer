@@ -1,103 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
-
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="jatx.audiobookplayer.MainViewModel" />
+    </data>
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/btn_open_dir"
-            android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".MainActivity">
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:text="Open Dir"
-            style="@style/Widget.AppCompat.Button.Colored"
-            />
-        <Button
-            android:id="@+id/btn_select_tempo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/btn_open_dir"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="Open Dir"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
+            <Button
+                android:id="@+id/btn_select_tempo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="1.0"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
+        </LinearLayout>
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:text="1.0"
-            style="@style/Widget.AppCompat.Button.Colored"
-            />
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/nav_graph"
+            tools:context=".MainActivity" />
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginHorizontal="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/btn_prev"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Prev"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
+            <Button
+                android:id="@+id/btn_minus_15"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="-15"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
+            <Button
+                android:id="@+id/btn_play"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Play"
+                android:visibility="@{viewModel.playBtnVisibility}"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
+            <Button
+                android:id="@+id/btn_pause"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Pause"
+                android:visibility="@{viewModel.pauseBtnVisibility}"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
+            <Button
+                android:id="@+id/btn_plus_15"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="+15"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
+            <Button
+                android:id="@+id/btn_next"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Next"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
+        </LinearLayout>
+
     </LinearLayout>
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragment_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:name="androidx.navigation.fragment.NavHostFragment"
-        app:defaultNavHost="true"
-        app:navGraph="@navigation/nav_graph"
-        tools:context=".MainActivity" />
-
-    <SeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_marginHorizontal="16dp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/btn_prev"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Prev"
-            style="@style/Widget.AppCompat.Button.Colored"
-            />
-        <Button
-            android:id="@+id/btn_minus_15"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="-15"
-            style="@style/Widget.AppCompat.Button.Colored"
-            />
-        <Button
-            android:id="@+id/btn_play"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Play"
-            style="@style/Widget.AppCompat.Button.Colored"
-            />
-        <Button
-            android:id="@+id/btn_pause"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Pause"
-            android:visibility="gone"
-            style="@style/Widget.AppCompat.Button.Colored"
-            />
-        <Button
-            android:id="@+id/btn_plus_15"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="+15"
-            style="@style/Widget.AppCompat.Button.Colored"
-            />
-        <Button
-            android:id="@+id/btn_next"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Next"
-            style="@style/Widget.AppCompat.Button.Colored"
-            />
-    </LinearLayout>
-
-</LinearLayout>
+</layout>
