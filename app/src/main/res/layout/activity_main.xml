@@ -50,7 +50,10 @@
             android:id="@+id/seekBar"
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:layout_marginHorizontal="16dp" />
+            android:layout_marginHorizontal="16dp"
+            android:progress="@{viewModel.currentPosition}"
+            android:max="@{viewModel.duration}"
+            />
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -57,6 +57,27 @@ object AppState {
     private val _isPlaying = MutableLiveData(false)
     val isPlaying: LiveData<Boolean> = _isPlaying
 
+    private val _currentPosition = MutableLiveData(0)
+    val currentPosition: LiveData<Int> = _currentPosition
+
+    private val _duration = MutableLiveData(0)
+    val duration: LiveData<Int> = _duration
+
+    val _progress: MutableLiveData<Float?> = MutableLiveData(null)
+    val progress: LiveData<Float?> = _progress
+
+    fun updateCurrentPosition(value: Int) {
+        _currentPosition.postValue(value)
+    }
+
+    fun updateDuration(value: Int) {
+        _duration.postValue(value)
+    }
+
+    fun updateProgress(value: Float?) {
+        _progress.postValue(value)
+    }
+
     fun updateIsPlaying(value: Boolean) {
         _isPlaying.value = value
     }

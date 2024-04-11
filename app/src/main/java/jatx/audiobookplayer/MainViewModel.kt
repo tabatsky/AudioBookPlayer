@@ -9,4 +9,9 @@ class MainViewModel: ViewModel() {
         .map { if (it) View.GONE else View.VISIBLE }
     val pauseBtnVisibility = AppState.isPlaying
         .map { if (it) View.VISIBLE else View.GONE }
+
+    val currentPosition = AppState.currentPosition
+    val duration = AppState.duration
+
+    val progress = AppState.progress
 }
