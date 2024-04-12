@@ -42,10 +42,12 @@ const val CLICK_PLUS_15 = "jatx.audiobookplayer.CLICK_PLUS_15"
 const val CLICK_MINUS_15 = "jatx.audiobookplayer.CLICK_MINUS_15"
 const val CLICK_PROGRESS = "jatx.audiobookplayer.CLICK_PROGRESS"
 const val CLICK_PLAYLIST_ITEM = "jatx.audiobookplayer.CLICK_PLAYLIST_ITEM"
+const val CLICK_TEMPO = "jatx.audiobookplayer.CLICK_TEMPO"
 
 const val KEY_PROGRESS = "progress"
 const val KEY_NAME = "name"
 const val KEY_URI = "uri"
+const val KEY_TEMPO = "tempo"
 
 class MainActivity : FragmentActivity() {
 
@@ -72,9 +74,7 @@ class MainActivity : FragmentActivity() {
     private var tempo: Double = 1.0
         set(value) {
             if (value != field) {
-                lifecycleScope.launch {
-                    applyTempo(value.toString())
-                }
+                clickTempo(value.toString())
             }
             field = value
             binding.btnSelectTempo.text = value.toString()
@@ -229,6 +229,12 @@ class MainActivity : FragmentActivity() {
         sendBroadcast(intent)
     }
 
+    private fun clickTempo(tempoStr: String) {
+        val intent = Intent(CLICK_TEMPO)
+        intent.putExtra(KEY_TEMPO, tempoStr)
+        sendBroadcast(intent)
+    }
+
     private fun notifyProgress(currentPosition: Int, duration: Int) {
         AppState.updateDuration(duration)
         AppState.updateCurrentPosition(currentPosition)
@@ -314,6 +320,17 @@ class MainActivity : FragmentActivity() {
         }
         registerExportedReceiver(clickPlaylistItemReceiver, IntentFilter(CLICK_PLAYLIST_ITEM))
         broadcastReceivers.add(clickPlaylistItemReceiver)
+
+        val clickTempoReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val tempoStr = intent?.getStringExtra(KEY_TEMPO) ?: "1.0"
+                lifecycleScope.launch {
+                    applyTempo(tempoStr)
+                }
+            }
+        }
+        registerExportedReceiver(clickTempoReceiver, IntentFilter(CLICK_TEMPO))
+        broadcastReceivers.add(clickTempoReceiver)
     }
 
     private fun unregisterReceivers() {
