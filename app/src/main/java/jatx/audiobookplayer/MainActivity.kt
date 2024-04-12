@@ -71,12 +71,13 @@ class MainActivity : FragmentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
-    private var tempo: Double = 1.0
+    private var tempo: Double = App.settings.tempo
         set(value) {
             if (value != field) {
                 clickTempo(value.toString())
             }
             field = value
+            App.settings.tempo = value
             binding.btnSelectTempo.text = value.toString()
         }
 
@@ -113,6 +114,8 @@ class MainActivity : FragmentActivity() {
 
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
+
+        binding.btnSelectTempo.text = tempo.toString()
 
         binding.btnOpenDir.setOnClickListener {
             openDirResultLauncher.launch(App.settings.audioBooksDirUri)
