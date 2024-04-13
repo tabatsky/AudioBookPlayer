@@ -12,7 +12,7 @@
 int sox_tempo(char* inPathCStr, char* outPathCStr, char* tempoCStr);
 
 extern "C" JNIEXPORT int JNICALL
-Java_jatx_audiobookplayer_MainActivity_applyTempoJNI(
+Java_jatx_audiobookplayer_PlayerService_applyTempoJNI(
         JNIEnv* env,
         jobject /* this */,
         jstring inPath,

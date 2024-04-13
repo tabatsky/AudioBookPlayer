@@ -12,6 +12,4 @@ class MainViewModel: ViewModel() {
 
     val currentPosition = AppState.currentPosition
     val duration = AppState.duration
-
-    val progress = AppState.progress
 }
