@@ -21,14 +21,23 @@
             android:text="@{viewModel.playlistName}"
             />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@android:color/white"/>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_playlist"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_margin="8dp"
             app:items="@{viewModel.highlightablePlaylistItems}"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@android:color/white"/>
     </LinearLayout>
 </layout>
