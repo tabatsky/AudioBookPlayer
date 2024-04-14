@@ -5,6 +5,7 @@ import android.net.Uri
 
 private const val keyDirUri = "dirUri"
 private const val keyTempo = "tempo"
+private const val keyPlaylistName = "playlistName"
 
 class Settings(private val context: Context) {
 
@@ -27,6 +28,14 @@ class Settings(private val context: Context) {
         set(value) {
             val editor = sp.edit()
             editor.putString(keyTempo, value.toString())
+            editor.commit()
+        }
+
+    var playlistName: String
+        get() = sp.getString(keyPlaylistName, "") ?: ""
+        set(value) {
+            val editor = sp.edit()
+            editor.putString(keyPlaylistName, value)
             editor.commit()
         }
 }

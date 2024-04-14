@@ -171,6 +171,7 @@ class MainActivity : FragmentActivity() {
     fun openPlaylist(playlistName: String) {
         if (playlistName != AppState.playlistName.value) {
             notifyPlaylistChanged()
+            App.settings.playlistName = playlistName
             AppState.updatePlaylistName(playlistName)
         }
         val action = LibraryFragmentDirections.actionLibraryFragmentToPlaylistFragment()

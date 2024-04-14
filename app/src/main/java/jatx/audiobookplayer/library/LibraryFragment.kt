@@ -36,6 +36,12 @@ class LibraryFragment : Fragment() {
         libraryFragmentBinding.lifecycleOwner = this
         libraryFragmentBinding.viewModel = viewModel
 
+        viewModel.libraryItems.observe(this) { list ->
+            if (list.map { it.name }.contains(App.settings.playlistName)) {
+                App.activityProvider.currentActivity?.openPlaylist(App.settings.playlistName)
+            }
+        }
+
         val adapter = LibraryAdapter()
         adapter.onItemClick = {
             App.activityProvider.currentActivity?.openPlaylist(it.name)
