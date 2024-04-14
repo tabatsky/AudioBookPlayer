@@ -151,6 +151,10 @@ class MainActivity : FragmentActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setView(R.layout.dialog_progress)
         progressDialog = builder.create()
+
+        viewModel.isProgressDialogVisible.observe(this) { show ->
+            showProgressDialog(show)
+        }
     }
 
     override fun onStart() {
@@ -249,7 +253,7 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private suspend fun showProgressDialog(show: Boolean) = withContext(Dispatchers.Main) {
+    private fun showProgressDialog(show: Boolean) {
         if (show) {
             progressDialog?.show()
         } else {

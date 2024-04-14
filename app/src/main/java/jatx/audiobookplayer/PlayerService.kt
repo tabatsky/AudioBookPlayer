@@ -256,7 +256,9 @@ class PlayerService : Service() {
         AppState.updateProgress(null)
     }
 
-    private suspend fun showProgressDialog(show: Boolean) {}
+    private suspend fun showProgressDialog(show: Boolean) = withContext(Dispatchers.Main) {
+        AppState.updateProgressDialogVisible(show)
+    }
 
     private fun copyAndPlayPlaylistItem(playlistItem: PlaylistItem) {
         notifyDuration(0)

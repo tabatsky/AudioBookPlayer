@@ -63,8 +63,11 @@ object AppState {
     private val _duration = MutableLiveData(0)
     val duration: LiveData<Int> = _duration
 
-    val _progress: MutableLiveData<Float?> = MutableLiveData(null)
+    private val _progress: MutableLiveData<Float?> = MutableLiveData(null)
     val progress: LiveData<Float?> = _progress
+
+    private val _isProgressDialogVisible = MutableLiveData(false)
+    val isProgressDialogVisible: LiveData<Boolean> = _isProgressDialogVisible
 
     fun updateCurrentPosition(value: Int) {
         _currentPosition.postValue(value)
@@ -88,6 +91,10 @@ object AppState {
 
     fun updatePlaylistItem(playlistItem: PlaylistItem?) {
         _activePlaylistItem.value = playlistItem
+    }
+
+    fun updateProgressDialogVisible(value: Boolean) {
+        _isProgressDialogVisible.value = value
     }
 
     suspend fun updateMp3Files(pickedDir: DocumentFile) {
