@@ -31,7 +31,7 @@ object AppState {
                 .sortedBy { it.name }
         }
 
-    private val _playlistName = MutableLiveData("")
+    private val _playlistName = MutableLiveData(App.settings.playlistName)
     val playlistName: LiveData<String> = _playlistName
 
     val playlistItems: LiveData<List<PlaylistItem>> = mp3Files
