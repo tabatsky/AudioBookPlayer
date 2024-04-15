@@ -18,6 +18,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -277,12 +278,6 @@ class PlayerService : Service() {
                 }
             }
             showProgressDialog(false)
-            if (AppState.needPauseFlag) {
-                withContext(Dispatchers.Main) {
-                    pausePlayer()
-                }
-                AppState.needPauseFlag = false
-            }
         }
     }
 
@@ -359,28 +354,37 @@ class PlayerService : Service() {
                 mediaPlayer?.setOnCompletionListener {
                     stopAndReleasePlayer()
                     notifyDuration(0)
+                    App.settings.lastProgress = 0f
                 }
                 val duration = mediaPlayer?.duration ?: 0
                 notifyDuration(duration)
                 progressBackup?.let {
                     val progressMs = ((it * duration).toInt() - 3000).takeIf { it >= 0 } ?: 0
                     mediaPlayer?.seekTo(progressMs)
+                    progressBackup = null
+                } ?: run {
+                    val progressMs = ((App.settings.lastProgress * duration).toInt() - 3000).takeIf { it >= 0 } ?: 0
+                    mediaPlayer?.seekTo(progressMs)
                 }
-                progressBackup = null
                 mediaPlayer?.start()
             }
-        } else if (mediaPlayer?.isPlaying != true) {
-            mediaPlayer?.start()
         }
 
         progressJob = scope.launch {
+            var counter = 0
             while (mediaPlayer?.isPlaying == true) {
                 delay(50L)
+                val currentPosition = mediaPlayer?.currentPosition ?: 0
+                val duration = mediaPlayer?.duration ?: 0
                 withContext(Dispatchers.Main) {
-                    val currentPosition = mediaPlayer?.currentPosition ?: 0
-                    val duration = mediaPlayer?.duration ?: 0
                     notifyProgress(currentPosition, duration)
                 }
+                if (counter % 20 == 0) {
+                    AppState.progress.value?.let {
+                        App.settings.lastProgress = it
+                    }
+                }
+                counter++
             }
         }
 
@@ -407,6 +411,7 @@ class PlayerService : Service() {
     }
 
     private fun nextPlaylistItem() {
+        App.settings.lastProgress = 0f
         AppState.activePlaylistItem.value?.let { playlistItem ->
             val playlistItems = AppState.playlistItems.value
             val index = playlistItems?.indexOf(playlistItem)?.takeIf { it >= 0 }
@@ -420,6 +425,7 @@ class PlayerService : Service() {
     }
 
     private fun prevPlaylistItem() {
+        App.settings.lastProgress = 0f
         AppState.activePlaylistItem.value?.let { playlistItem ->
             val playlistItems = AppState.playlistItems.value
             val index = playlistItems?.indexOf(playlistItem)?.takeIf { it >= 0 }
@@ -449,8 +455,16 @@ class PlayerService : Service() {
         progressChangedByUser(newPosition)
     }
 
-    private fun progressChangedByUser(progress: Int) {
-        mediaPlayer?.seekTo(progress)
+    private fun progressChangedByUser(currentPosition: Int) {
+        Log.e("progress", currentPosition.toString())
+        mediaPlayer?.seekTo(currentPosition)
+        AppState.updateCurrentPosition(currentPosition)
+        val duration = AppState.duration.value
+        duration?.let {
+            val progress = 1f * currentPosition / duration
+            AppState.updateProgress(progress)
+            App.settings.lastProgress = progress
+        }
     }
 
     /**

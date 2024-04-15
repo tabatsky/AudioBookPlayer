@@ -155,6 +155,18 @@ class MainActivity : FragmentActivity() {
         viewModel.isProgressDialogVisible.observe(this) { show ->
             showProgressDialog(show)
         }
+
+        viewModel.duration.observe(this) {
+            if (it != viewModel.lastDuration) {
+                viewModel.lastDuration = it
+                val position = (it * App.settings.lastProgress).roundToInt()
+                clickProgress(position)
+                if (AppState.needPauseFlag) {
+                    clickPause()
+                }
+                AppState.needPauseFlag = false
+            }
+        }
     }
 
     override fun onStart() {

@@ -13,5 +13,7 @@ class MainViewModel: ViewModel() {
     val currentPosition = AppState.currentPosition
     val duration = AppState.duration
 
+    var lastDuration = 0
+
     val isProgressDialogVisible = AppState.isProgressDialogVisible
 }

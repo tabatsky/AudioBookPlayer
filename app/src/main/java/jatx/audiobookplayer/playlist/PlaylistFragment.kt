@@ -44,8 +44,8 @@ class PlaylistFragment : Fragment() {
                 val lastPlaylistItem = App.settings.lastPlaylistItem
                 if (playlistItems?.contains(lastPlaylistItem) == true) {
                     App.activityProvider.currentActivity?.let {
-                        it.clickPlaylistItem(lastPlaylistItem)
                         AppState.needPauseFlag = true
+                        it.clickPlaylistItem(lastPlaylistItem)
                     }
                 }
             }
@@ -53,6 +53,7 @@ class PlaylistFragment : Fragment() {
 
         val adapter = PlaylistAdapter()
         adapter.onItemClick = {
+            App.settings.lastProgress = 0f
             App.activityProvider.currentActivity?.clickPlaylistItem(it.playlistItem)
         }
         playlistFragmentBinding.rvPlaylist.adapter = adapter

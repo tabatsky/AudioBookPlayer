@@ -9,6 +9,7 @@ private const val keyTempo = "tempo"
 private const val keyPlaylistName = "playlistName"
 private const val keyPlaylistItemName = "playlistItemName"
 private const val keyPlaylistItemUri = "playlistItemUri"
+private const val keyProgress = "lastProgress"
 
 class Settings(private val context: Context) {
 
@@ -53,6 +54,14 @@ class Settings(private val context: Context) {
             val editor = sp.edit()
             editor.putString(keyPlaylistItemName, value.name)
             editor.putString(keyPlaylistItemUri, value.uri.toString())
+            editor.commit()
+        }
+
+    var lastProgress: Float
+        get() = sp.getFloat(keyProgress, 0f).takeIf { !it.isNaN() } ?: 0f
+        set(value) {
+            val editor = sp.edit()
+            editor.putFloat(keyProgress, value)
             editor.commit()
         }
 }
