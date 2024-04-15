@@ -277,6 +277,12 @@ class PlayerService : Service() {
                 }
             }
             showProgressDialog(false)
+            if (AppState.needPauseFlag) {
+                withContext(Dispatchers.Main) {
+                    pausePlayer()
+                }
+                AppState.needPauseFlag = false
+            }
         }
     }
 

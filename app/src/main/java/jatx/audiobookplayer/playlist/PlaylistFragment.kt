@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import jatx.audiobookplayer.App
+import jatx.audiobookplayer.AppState
 import jatx.audiobookplayer.databinding.FragmentPlaylistBinding
 
 class PlaylistFragment : Fragment() {
@@ -35,6 +36,20 @@ class PlaylistFragment : Fragment() {
 
         playlistFragmentBinding.lifecycleOwner = this
         playlistFragmentBinding.viewModel = viewModel
+
+        viewModel.highlightablePlaylistItems.observe(viewLifecycleOwner) { list ->
+            val playlistItems = list?.map { it.playlistItem }
+            if (playlistItems != viewModel.lastPlaylistItems) {
+                viewModel.lastPlaylistItems = playlistItems
+                val lastPlaylistItem = App.settings.lastPlaylistItem
+                if (playlistItems?.contains(lastPlaylistItem) == true) {
+                    App.activityProvider.currentActivity?.let {
+                        it.clickPlaylistItem(lastPlaylistItem)
+                        AppState.needPauseFlag = true
+                    }
+                }
+            }
+        }
 
         val adapter = PlaylistAdapter()
         adapter.onItemClick = {

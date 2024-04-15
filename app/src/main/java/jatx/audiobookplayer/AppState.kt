@@ -69,6 +69,8 @@ object AppState {
     private val _isProgressDialogVisible = MutableLiveData(false)
     val isProgressDialogVisible: LiveData<Boolean> = _isProgressDialogVisible
 
+    var needPauseFlag = false
+
     fun updateCurrentPosition(value: Int) {
         _currentPosition.postValue(value)
     }

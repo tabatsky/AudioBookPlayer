@@ -2,10 +2,13 @@ package jatx.audiobookplayer
 
 import android.content.Context
 import android.net.Uri
+import jatx.audiobookplayer.models.PlaylistItem
 
 private const val keyDirUri = "dirUri"
 private const val keyTempo = "tempo"
 private const val keyPlaylistName = "playlistName"
+private const val keyPlaylistItemName = "playlistItemName"
+private const val keyPlaylistItemUri = "playlistItemUri"
 
 class Settings(private val context: Context) {
 
@@ -36,6 +39,20 @@ class Settings(private val context: Context) {
         set(value) {
             val editor = sp.edit()
             editor.putString(keyPlaylistName, value)
+            editor.commit()
+        }
+
+    var lastPlaylistItem: PlaylistItem
+        get() {
+            val name = sp.getString(keyPlaylistItemName, "") ?: ""
+            val uriStr = sp.getString(keyPlaylistItemUri, "") ?: ""
+            val uri = Uri.parse(uriStr)
+            return PlaylistItem(name, uri)
+        }
+        set(value) {
+            val editor = sp.edit()
+            editor.putString(keyPlaylistItemName, value.name)
+            editor.putString(keyPlaylistItemUri, value.uri.toString())
             editor.commit()
         }
 }

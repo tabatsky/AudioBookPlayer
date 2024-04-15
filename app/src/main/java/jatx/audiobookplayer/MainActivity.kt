@@ -188,6 +188,7 @@ class MainActivity : FragmentActivity() {
     }
 
     fun clickPlaylistItem(playlistItem: PlaylistItem) {
+        App.settings.lastPlaylistItem = playlistItem
         val intent = Intent(CLICK_PLAYLIST_ITEM)
         intent.putExtra(KEY_NAME, playlistItem.name)
         intent.putExtra(KEY_URI, playlistItem.uri.toString())
