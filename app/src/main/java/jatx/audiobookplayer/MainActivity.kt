@@ -150,6 +150,7 @@ class MainActivity : FragmentActivity() {
 
         val builder = AlertDialog.Builder(this)
         builder.setView(R.layout.dialog_progress)
+        builder.setCancelable(false)
         progressDialog = builder.create()
 
         viewModel.isProgressDialogVisible.observe(this) { show ->
