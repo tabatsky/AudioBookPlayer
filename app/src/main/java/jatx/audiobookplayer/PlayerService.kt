@@ -355,6 +355,7 @@ class PlayerService : Service() {
                     stopAndReleasePlayer()
                     notifyDuration(0)
                     App.settings.lastProgress = 0f
+                    nextPlaylistItem()
                 }
                 val duration = mediaPlayer?.duration ?: 0
                 notifyDuration(duration)
@@ -417,9 +418,13 @@ class PlayerService : Service() {
             val index = playlistItems?.indexOf(playlistItem)?.takeIf { it >= 0 }
             if (playlistItems != null && index != null) {
                 val count = playlistItems.size
-                val nextIndex = (index + 1) % count
-                val nextPlaylistItem = playlistItems[nextIndex]
-                copyAndPlayPlaylistItem(nextPlaylistItem)
+                val nextIndex = index + 1
+                if (nextIndex < count) {
+                    val nextPlaylistItem = playlistItems[nextIndex]
+                    copyAndPlayPlaylistItem(nextPlaylistItem)
+                } else {
+                    showToast("No tracks after")
+                }
             }
         }
     }
@@ -430,14 +435,13 @@ class PlayerService : Service() {
             val playlistItems = AppState.playlistItems.value
             val index = playlistItems?.indexOf(playlistItem)?.takeIf { it >= 0 }
             if (playlistItems != null && index != null) {
-                val count = playlistItems.size
-                val prevIndex = if (index > 0) {
-                    index - 1
+                if (index > 0) {
+                    val prevIndex = index - 1
+                    val prevPlaylistItem = playlistItems[prevIndex]
+                    copyAndPlayPlaylistItem(prevPlaylistItem)
                 } else {
-                    count - 1
+                    showToast("No tracks before")
                 }
-                val prevPlaylistItem = playlistItems[prevIndex]
-                copyAndPlayPlaylistItem(prevPlaylistItem)
             }
         }
     }
