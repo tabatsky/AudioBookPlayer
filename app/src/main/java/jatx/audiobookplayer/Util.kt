@@ -37,3 +37,11 @@ fun Context.registerExportedReceiver(receiver: BroadcastReceiver, filter: Intent
 fun Context.showToast(msg: String) {
     Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 }
+
+fun Int.millisToTimeString(): String {
+    val totalSec = this / 1000
+    val sec = totalSec % 60
+    val min = totalSec / 60
+    val secStr = sec.toString().padStart(2, '0')
+    return "$min:$secStr"
+}

@@ -46,14 +46,33 @@
             app:navGraph="@navigation/nav_graph"
             tools:context=".MainActivity" />
 
-        <SeekBar
-            android:id="@+id/seekBar"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginHorizontal="16dp"
-            android:progress="@{viewModel.currentPosition}"
-            android:max="@{viewModel.duration}"
-            />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+            <TextView
+                android:id="@+id/tv_current_position"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                />
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="16dp"
+                android:progress="@{viewModel.currentPosition}"
+                android:max="@{viewModel.duration}"
+                />
+            <TextView
+                android:id="@+id/tv_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

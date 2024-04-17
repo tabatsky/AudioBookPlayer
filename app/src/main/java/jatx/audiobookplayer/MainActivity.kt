@@ -168,6 +168,14 @@ class MainActivity : FragmentActivity() {
                 AppState.needPauseFlag = false
             }
         }
+
+        viewModel.duration.observe(this) {
+            updateDurationIndicator(it, tempo)
+        }
+
+        viewModel.currentPosition.observe(this) {
+            binding.tvCurrentPosition.text = (it * tempo).roundToInt().millisToTimeString()
+        }
     }
 
     override fun onStart() {
@@ -311,6 +319,10 @@ class MainActivity : FragmentActivity() {
         }
         builder.create()
         return builder.show()
+    }
+
+    private fun updateDurationIndicator(duration: Int, tempo: Double) {
+        binding.tvDuration.text = (duration * tempo).roundToInt().millisToTimeString()
     }
 
     private fun loadAudioBookDir(dirUri: Uri) {
