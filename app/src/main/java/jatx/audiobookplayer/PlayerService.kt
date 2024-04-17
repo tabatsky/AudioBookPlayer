@@ -5,8 +5,8 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -16,15 +16,22 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
 import android.provider.MediaStore
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.text.TextUtils
 import android.util.Log
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.media.MediaBrowserServiceCompat
+import androidx.media.session.MediaButtonReceiver
 import jatx.audiobookplayer.models.PlaylistItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +47,7 @@ import java.io.FileOutputStream
 const val CHANNEL_ID_SERVICE = "PlayerService"
 const val CHANNEL_NAME_SERVICE = "PlayerService"
 
-class PlayerService : Service() {
+class PlayerService : MediaBrowserServiceCompat() {
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
@@ -58,6 +65,58 @@ class PlayerService : Service() {
 
     private val broadcastReceivers = arrayListOf<BroadcastReceiver>()
 
+    private lateinit var mediaSessionCompat: MediaSessionCompat
+
+    private val mediaSessionCallback: MediaSessionCompat.Callback =
+        object : MediaSessionCompat.Callback() {
+
+            override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+                val keyEvent =
+                    mediaButtonEvent!!.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+                Log.e("keyEvent", keyEvent.toString())
+                if (keyEvent?.action == KeyEvent.ACTION_DOWN && keyEvent.keyCode
+                    in listOf(KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PAUSE)) {
+
+                    if (isPlaying) {
+                        val intent = Intent(CLICK_PAUSE)
+                        sendBroadcast(intent)
+                    } else {
+                        val intent = Intent(CLICK_PLAY)
+                        sendBroadcast(intent)
+                    }
+
+                    return true
+                } else if (keyEvent?.action == KeyEvent.ACTION_DOWN &&
+                    keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_NEXT) {
+
+                    val intent = Intent(CLICK_MINUS_15)
+                    sendBroadcast(intent)
+
+                    return true
+                }
+
+                return super.onMediaButtonEvent(mediaButtonEvent)
+            }
+        }
+
+    override fun onGetRoot(
+        clientPackageName: String,
+        clientUid: Int,
+        rootHints: Bundle?
+    ): BrowserRoot? {
+        return if (TextUtils.equals(clientPackageName, packageName)) {
+            BrowserRoot(getString(R.string.app_name), null)
+        } else null
+    }
+
+    override fun onLoadChildren(
+        parentId: String,
+        result: Result<List<MediaBrowserCompat.MediaItem?>?>
+    ) {
+        result.sendResult(null)
+    }
+
+
     override fun onBind(intent: Intent): IBinder {
         TODO("Return the communication channel to the service.")
     }
@@ -66,6 +125,8 @@ class PlayerService : Service() {
         startForeground()
 
         registerReceivers()
+
+        initMediaSession()
 
         return START_STICKY_COMPATIBILITY
     }
@@ -80,6 +141,29 @@ class PlayerService : Service() {
             stopForeground(true)
         }
         super.onDestroy()
+    }
+
+    private fun initMediaSession() {
+        val mediaButtonReceiver = ComponentName(
+            applicationContext,
+            MediaButtonReceiver::class.java
+        )
+        mediaSessionCompat =
+            MediaSessionCompat(applicationContext, "Tag", mediaButtonReceiver, null)
+        mediaSessionCompat.setCallback(mediaSessionCallback)
+        mediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
+
+        val flags = if (Build.VERSION.SDK_INT < 23) {
+            0
+        } else {
+            PendingIntent.FLAG_IMMUTABLE
+        }
+
+        val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
+        mediaButtonIntent.setClass(this, MediaButtonReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, flags)
+        mediaSessionCompat.setMediaButtonReceiver(pendingIntent)
+        sessionToken = mediaSessionCompat.sessionToken
     }
 
     private fun startForeground() {

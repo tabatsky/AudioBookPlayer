@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    implementation("androidx.media:media:1.7.0")
     implementation("commons-io:commons-io:2.15.1")
     implementation("gun0912.ted:tedpermission:2.2.3")
     testImplementation("junit:junit:4.13.2")
