@@ -12,8 +12,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -32,6 +30,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import jatx.audiobookplayer.models.PlaylistItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,18 +52,19 @@ const val CHANNEL_NAME_SERVICE = "PlayerService"
 class PlayerService : MediaBrowserServiceCompat() {
 
     private val job = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.IO + job)
+    private val scope = CoroutineScope(Dispatchers.Main + job)
 
-    private var mediaPlayer: MediaPlayer? = null
+    private var player: Player? = null
 
     private var activeAudioFile: File? = null
-    private var activeAudioFileWithTempo: File? = null
 
     private var isPlaying = false
 
     private var progressJob: Job? = null
 
     private var progressBackup: Float? = null
+
+    private var tempo: Float = 1.0f
 
     private val broadcastReceivers = arrayListOf<BroadcastReceiver>()
 
@@ -349,9 +352,7 @@ class PlayerService : MediaBrowserServiceCompat() {
         notifyDuration(0)
         scope.launch {
             showProgressDialog(true)
-            withContext(Dispatchers.Main) {
-                stopAndReleasePlayer()
-            }
+            stopAndReleasePlayer()
             withContext(Dispatchers.IO) {
                 copyFileAndGetPath(playlistItem.uri)?.let { path ->
                     activeAudioFile = File(path)
@@ -391,79 +392,72 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     private suspend fun applyTempo(tempoStr: String) {
-        val activeAudioFile = this.activeAudioFile ?: return
-
-        val fileName = "${activeAudioFile.nameWithoutExtension}_${tempoStr}.wav"
-        val activeAudioFileWithTempo = File(getPlaylistDir(), fileName)
+        tempo = tempoStr.toFloat()
 
         val wasPlaying = isPlaying
 
-        showProgressDialog(true)
         progressBackup = AppState.progress.value
-        withContext(Dispatchers.Main) {
-            stopAndReleasePlayer()
-        }
-        withContext(Dispatchers.IO) {
-            if (!activeAudioFileWithTempo.exists()) {
-                applyTempoJNI(
-                    activeAudioFile.absolutePath,
-                    activeAudioFileWithTempo.absolutePath,
-                    tempoStr
-                )
-            }
-            this@PlayerService.activeAudioFileWithTempo = activeAudioFileWithTempo
-        }
+        Log.e("prog backup", progressBackup.toString())
+        showProgressDialog(true)
+        stopAndReleasePlayer()
         if (wasPlaying) {
-            withContext(Dispatchers.Main) {
-                playActiveFile()
-            }
+            playActiveFile()
         }
         showProgressDialog(false)
     }
 
     private suspend fun playActiveFile() {
-        if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-            }
+        if (player == null) {
+            player = ExoPlayer.Builder(applicationContext).build()
 
-            activeAudioFileWithTempo?.let {  theFile ->
-                mediaPlayer?.setDataSource(applicationContext, theFile.toUri())
-                mediaPlayer?.prepare()
-                mediaPlayer?.setOnCompletionListener {
-                    stopAndReleasePlayer()
-                    notifyDuration(0)
-                    App.settings.lastProgress = 0f
-                    nextPlaylistItem()
+            activeAudioFile?.let {  theFile ->
+                val mediaItem = MediaItem.fromUri(theFile.toUri())
+                player?.setMediaItem(mediaItem)
+                player?.prepare()
+                player?.addListener(object: Player.Listener {
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        when (playbackState) {
+                            Player.STATE_ENDED -> {
+                                stopAndReleasePlayer()
+                                notifyDuration(0)
+                                App.settings.lastProgress = 0f
+                                nextPlaylistItem()
+                            }
+                        }
+                        super.onPlaybackStateChanged(playbackState)
+                    }
+                })
+                val playbackParam = PlaybackParameters(tempo, 1.0f)
+                player?.playbackParameters = playbackParam
+                player?.play()
+                while (player?.playbackState != Player.STATE_READY) {
+                    delay(50)
                 }
-                val duration = mediaPlayer?.duration ?: 0
-                notifyDuration(duration)
+                val duration = player?.duration ?: 0L
+                notifyDuration(duration.toInt())
                 progressBackup?.let {
+                    Log.e("prog backup", progressBackup.toString())
                     val progressMs = ((it * duration).toInt() - 3000).takeIf { it >= 0 } ?: 0
-                    mediaPlayer?.seekTo(progressMs)
+                    Log.e("seek to", progressMs.toString())
+                    player?.seekTo(progressMs.toLong())
                     progressBackup = null
                 } ?: run {
                     val progressMs = ((App.settings.lastProgress * duration).toInt() - 3000).takeIf { it >= 0 } ?: 0
-                    mediaPlayer?.seekTo(progressMs)
+                    player?.seekTo(progressMs.toLong())
                 }
-                mediaPlayer?.start()
             }
         }
 
         progressJob = scope.launch {
             var counter = 0
-            while (mediaPlayer?.isPlaying == true) {
+            delay(300L)
+            while (player?.playbackState == Player.STATE_READY ||
+                player?.playbackState == Player.STATE_BUFFERING) {
                 delay(50L)
-                val currentPosition = mediaPlayer?.currentPosition ?: 0
-                val duration = mediaPlayer?.duration ?: 0
-                withContext(Dispatchers.Main) {
-                    notifyProgress(currentPosition, duration)
-                }
+                val currentPosition = player?.currentPosition ?: 0L
+                val duration = player?.duration ?: 0L
+                Log.e("progress", "$currentPosition $duration")
+                notifyProgress(currentPosition.toInt(), duration.toInt())
                 if (counter % 20 == 0) {
                     AppState.progress.value?.let {
                         App.settings.lastProgress = it
@@ -471,6 +465,7 @@ class PlayerService : MediaBrowserServiceCompat() {
                 }
                 counter++
             }
+            Log.e("progress", "job finished")
         }
 
         isPlaying = true
@@ -483,16 +478,19 @@ class PlayerService : MediaBrowserServiceCompat() {
 
         progressJob?.cancel()
 
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        player?.stop()
+        player?.release()
+        player = null
     }
 
     private fun pausePlayer() {
         isPlaying = false
         AppState.updateIsPlaying(false)
 
-        mediaPlayer?.pause()
+        val currentPosition = player?.currentPosition ?: 0L
+        val duration = player?.duration ?: 0L
+        stopAndReleasePlayer()
+        notifyProgress(currentPosition.toInt(), duration.toInt())
     }
 
     private fun nextPlaylistItem() {
@@ -531,41 +529,27 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     private fun plus15() {
-        val currentPosition = mediaPlayer?.currentPosition ?: 0
-        val duration = mediaPlayer?.duration ?: 0
+        val currentPosition = player?.currentPosition?.toInt() ?: 0
+        val duration = player?.duration?.toInt() ?: 0
         val newPosition = (currentPosition + 15000).takeIf { it <= duration } ?: duration
         progressChangedByUser(newPosition)
     }
 
     private fun minus15() {
-        val currentPosition = mediaPlayer?.currentPosition ?: 0
+        val currentPosition = player?.currentPosition?.toInt() ?: 0
         val newPosition = (currentPosition - 15000).takeIf { it >= 0 } ?: 0
         progressChangedByUser(newPosition)
     }
 
     private fun progressChangedByUser(currentPosition: Int) {
         Log.e("progress", currentPosition.toString())
-        mediaPlayer?.seekTo(currentPosition)
+        player?.seekTo(currentPosition.toLong())
         AppState.updateCurrentPosition(currentPosition)
         val duration = AppState.duration.value
         duration?.let {
             val progress = 1f * currentPosition / duration
             AppState.updateProgress(progress)
             App.settings.lastProgress = progress
-        }
-    }
-
-    /**
-     * A native method that is implemented by the 'audiobookplayer' native library,
-     * which is packaged with this application.
-     */
-    private external fun applyTempoJNI(inPath: String, outPath: String, tempo: String): Int
-
-    companion object {
-        // Used to load the 'audiobookplayer' library on application startup.
-        init {
-            System.loadLibrary("sox")
-            System.loadLibrary("audiobookplayer")
         }
     }
 }

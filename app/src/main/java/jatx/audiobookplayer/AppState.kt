@@ -72,15 +72,15 @@ object AppState {
     var needPauseFlag = false
 
     fun updateCurrentPosition(value: Int) {
-        _currentPosition.postValue(value)
+        _currentPosition.value = value
     }
 
     fun updateDuration(value: Int) {
-        _duration.postValue(value)
+        _duration.value = value
     }
 
     fun updateProgress(value: Float?) {
-        _progress.postValue(value)
+        _progress.value = value
     }
 
     fun updateIsPlaying(value: Boolean) {
