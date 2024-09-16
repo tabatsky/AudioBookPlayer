@@ -17,7 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.gun0912.tedpermission.PermissionListener
-import com.gun0912.tedpermission.TedPermission
+import com.gun0912.tedpermission.normal.TedPermission
 import jatx.audiobookplayer.databinding.ActivityMainBinding
 import jatx.audiobookplayer.library.LibraryFragmentDirections
 import jatx.audiobookplayer.models.PlaylistItem
@@ -174,7 +174,7 @@ class MainActivity : FragmentActivity() {
         }
 
         viewModel.currentPosition.observe(this) {
-            binding.tvCurrentPosition.text = (it * tempo).roundToInt().millisToTimeString()
+            binding.tvCurrentPosition.text = (it / tempo).roundToInt().millisToTimeString()
         }
     }
 
@@ -266,7 +266,7 @@ class MainActivity : FragmentActivity() {
         }
 
         if (Build.VERSION.SDK_INT >= 33) {
-            TedPermission.with(this)
+            TedPermission.create()
                 .setPermissionListener(permissionListener)
                 .setPermissions(
                     Manifest.permission.POST_NOTIFICATIONS
@@ -322,7 +322,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun updateDurationIndicator(duration: Int, tempo: Double) {
-        binding.tvDuration.text = (duration * tempo).roundToInt().millisToTimeString()
+        binding.tvDuration.text = (duration / tempo).roundToInt().millisToTimeString()
     }
 
     private fun loadAudioBookDir(dirUri: Uri) {
