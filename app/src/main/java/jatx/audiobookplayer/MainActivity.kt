@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.NumberPicker
 import android.widget.SeekBar
 import androidx.activity.result.contract.ActivityResultContracts
@@ -158,9 +159,10 @@ class MainActivity : FragmentActivity() {
         }
 
         viewModel.duration.observe(this) {
-            if (it != viewModel.lastDuration) {
+            if (it != viewModel.lastDuration && it > 1) {
                 viewModel.lastDuration = it
                 val position = (it * App.settings.lastProgress).roundToInt()
+                Log.e("click progress", "$it ${App.settings.lastProgress} $position")
                 clickProgress(position)
                 if (AppState.needPauseFlag) {
                     clickPause()

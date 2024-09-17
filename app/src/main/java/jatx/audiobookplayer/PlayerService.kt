@@ -358,6 +358,8 @@ class PlayerService : MediaBrowserServiceCompat() {
                     activeAudioFile = File(path)
                     withContext(Dispatchers.Main) {
                         AppState.updatePlaylistItem(playlistItem)
+                        Log.e("last progress", App.settings.lastProgress.toString())
+                        progressBackup = App.settings.lastProgress
                         applyTempoAndPlayActiveFile()
                     }
                 }
@@ -456,7 +458,7 @@ class PlayerService : MediaBrowserServiceCompat() {
                 delay(50L)
                 val currentPosition = player?.currentPosition ?: 0L
                 val duration = player?.duration ?: 0L
-                Log.e("progress", "$currentPosition $duration")
+                //Log.e("progress", "$currentPosition $duration")
                 notifyProgress(currentPosition.toInt(), duration.toInt())
                 if (counter % 20 == 0) {
                     AppState.progress.value?.let {

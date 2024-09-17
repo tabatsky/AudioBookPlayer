@@ -7,9 +7,9 @@ import jatx.audiobookplayer.models.PlaylistItem
 private const val keyDirUri = "dirUri"
 private const val keyTempo = "tempo"
 private const val keyPlaylistName = "playlistName"
-private const val keyPlaylistItemName = "playlistItemName"
-private const val keyPlaylistItemUri = "playlistItemUri"
-private const val keyProgress = "lastProgress"
+private const val keyPlaylistItemName = "_playlistItemName"
+private const val keyPlaylistItemUri = "_playlistItemUri"
+private const val keyProgress = "_lastProgress"
 
 class Settings(private val context: Context) {
 
@@ -45,23 +45,23 @@ class Settings(private val context: Context) {
 
     var lastPlaylistItem: PlaylistItem
         get() {
-            val name = sp.getString(keyPlaylistItemName, "") ?: ""
-            val uriStr = sp.getString(keyPlaylistItemUri, "") ?: ""
+            val name = sp.getString(playlistName + keyPlaylistItemName, "") ?: ""
+            val uriStr = sp.getString(playlistName + keyPlaylistItemUri, "") ?: ""
             val uri = Uri.parse(uriStr)
             return PlaylistItem(name, uri)
         }
         set(value) {
             val editor = sp.edit()
-            editor.putString(keyPlaylistItemName, value.name)
-            editor.putString(keyPlaylistItemUri, value.uri.toString())
+            editor.putString(playlistName + keyPlaylistItemName, value.name)
+            editor.putString(playlistName + keyPlaylistItemUri, value.uri.toString())
             editor.commit()
         }
 
     var lastProgress: Float
-        get() = sp.getFloat(keyProgress, 0f).takeIf { !it.isNaN() } ?: 0f
+        get() = sp.getFloat(playlistName + keyProgress, 0f).takeIf { !it.isNaN() } ?: 0f
         set(value) {
             val editor = sp.edit()
-            editor.putFloat(keyProgress, value)
+            editor.putFloat(playlistName + keyProgress, value)
             editor.commit()
         }
 }
