@@ -531,16 +531,20 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     private fun plus15() {
-        val currentPosition = player?.currentPosition?.toInt() ?: 0
-        val duration = player?.duration?.toInt() ?: 0
-        val newPosition = (currentPosition + 15000).takeIf { it <= duration } ?: duration
-        progressChangedByUser(newPosition)
+        player?.let {
+            val currentPosition = it.currentPosition.toInt()
+            val duration = player?.duration?.toInt() ?: 0
+            val newPosition = (currentPosition + 15000).takeIf { it <= duration } ?: duration
+            progressChangedByUser(newPosition)
+        }
     }
 
     private fun minus15() {
-        val currentPosition = player?.currentPosition?.toInt() ?: 0
-        val newPosition = (currentPosition - 15000).takeIf { it >= 0 } ?: 0
-        progressChangedByUser(newPosition)
+        player?.let {
+            val currentPosition = it.currentPosition.toInt()
+            val newPosition = (currentPosition - 15000).takeIf { it >= 0 } ?: 0
+            progressChangedByUser(newPosition)
+        }
     }
 
     private fun progressChangedByUser(currentPosition: Int) {
