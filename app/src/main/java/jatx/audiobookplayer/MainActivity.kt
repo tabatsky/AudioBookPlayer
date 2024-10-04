@@ -191,6 +191,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun startService() {
+        if (AppState.isServiceRunning) return
         val intent = Intent(this, PlayerService::class.java)
         startService(intent)
     }

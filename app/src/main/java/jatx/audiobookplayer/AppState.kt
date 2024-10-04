@@ -71,6 +71,8 @@ object AppState {
 
     var needPauseFlag = false
 
+    var isServiceRunning = false
+
     fun updateCurrentPosition(value: Int) {
         _currentPosition.value = value
     }

@@ -131,10 +131,14 @@ class PlayerService : MediaBrowserServiceCompat() {
 
         initMediaSession()
 
+        AppState.isServiceRunning = true
+
         return START_STICKY_COMPATIBILITY
     }
 
     override fun onDestroy() {
+        AppState.isServiceRunning = false
+
         unregisterReceivers()
 
         if (Build.VERSION.SDK_INT >= 24) {
