@@ -1,5 +1,7 @@
 package jatx.audiobookplayer
 
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -10,6 +12,7 @@ import jatx.audiobookplayer.models.LibraryItem
 import jatx.audiobookplayer.models.PlaylistItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
 
 object AppState {
 
@@ -41,8 +44,9 @@ object AppState {
                     .mapNotNull { documentFile ->
                         val name = documentFile.name
                         val uri = documentFile.uri
+
                         name?.let {
-                            PlaylistItem(name, uri)
+                            PlaylistItem(name, uri, uri.getAudioDuration())
                         }
                     }
                     .sortedBy { it.name }
@@ -117,6 +121,15 @@ object AppState {
 
         return result
     }
+}
+
+fun Uri.getAudioDuration(): Int {
+    val mmr = MediaMetadataRetriever()
+    mmr.setDataSource(App.activityProvider.currentActivity?.applicationContext!!, this)
+    val durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+    val duration = durationStr!!.toInt()
+
+    return duration
 }
 
 fun <T, K, R> LiveData<T>.combineWith(

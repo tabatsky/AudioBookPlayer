@@ -1,11 +1,15 @@
 package jatx.audiobookplayer.models
 
 import android.net.Uri
+import jatx.audiobookplayer.millisToTimeString
 
 data class PlaylistItem(
     val name: String,
-    val uri: Uri
-)
+    val uri: Uri,
+    val duration: Int
+) {
+    val durationStr = duration.millisToTimeString()
+}
 
 val colorTransparent = 0x00000000
 val colorBlue = 0xFF000099

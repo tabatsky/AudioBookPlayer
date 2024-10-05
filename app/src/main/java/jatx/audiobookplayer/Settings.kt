@@ -48,7 +48,7 @@ class Settings(private val context: Context) {
             val name = sp.getString(playlistName + keyPlaylistItemName, "") ?: ""
             val uriStr = sp.getString(playlistName + keyPlaylistItemUri, "") ?: ""
             val uri = Uri.parse(uriStr)
-            return PlaylistItem(name, uri)
+            return PlaylistItem(name, uri, uri.getAudioDuration())
         }
         set(value) {
             val editor = sp.edit()

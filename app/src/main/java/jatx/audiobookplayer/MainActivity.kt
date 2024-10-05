@@ -92,6 +92,7 @@ class MainActivity : FragmentActivity() {
         navController = navHost.navController
 
         checkNotificationPermissions()
+        checkReadAudioPermissions()
         startService()
 
         try {
@@ -273,6 +274,31 @@ class MainActivity : FragmentActivity() {
                 .setPermissionListener(permissionListener)
                 .setPermissions(
                     Manifest.permission.POST_NOTIFICATIONS
+                )
+                .check()
+        }
+    }
+
+    private fun checkReadAudioPermissions() {
+        val permissionListener = object : PermissionListener {
+            override fun onPermissionGranted() {}
+
+            override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}
+        }
+
+        if (Build.VERSION.SDK_INT >= 33) {
+            TedPermission.create()
+                .setPermissionListener(permissionListener)
+                .setPermissions(
+                    Manifest.permission.READ_MEDIA_AUDIO,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+                .check()
+        } else {
+            TedPermission.create()
+                .setPermissionListener(permissionListener)
+                .setPermissions(
+                    Manifest.permission.READ_EXTERNAL_STORAGE
                 )
                 .check()
         }
