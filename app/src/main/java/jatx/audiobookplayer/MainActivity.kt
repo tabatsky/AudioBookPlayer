@@ -176,7 +176,8 @@ class MainActivity : FragmentActivity() {
         }
 
         viewModel.currentPosition.observe(this) {
-            binding.tvCurrentPosition.text = (it / tempo).roundToInt().millisToTimeString()
+//            binding.tvCurrentPosition.text = (it / tempo).roundToInt().millisToTimeString()
+            binding.tvCurrentPosition.text = it.millisToTimeString()
         }
     }
 
@@ -324,7 +325,8 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun updateDurationIndicator(duration: Int, tempo: Double) {
-        binding.tvDuration.text = (duration / tempo).roundToInt().millisToTimeString()
+//        binding.tvDuration.text = (duration / tempo).roundToInt().millisToTimeString()
+        binding.tvDuration.text = duration.millisToTimeString()
     }
 
     private fun loadAudioBookDir(dirUri: Uri) {
