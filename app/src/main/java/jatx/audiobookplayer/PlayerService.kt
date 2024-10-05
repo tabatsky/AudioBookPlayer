@@ -125,20 +125,20 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground()
+        try {
+            startForeground()
 
-        registerReceivers()
+            registerReceivers()
 
-        initMediaSession()
-
-        AppState.isServiceRunning = true
+            initMediaSession()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         return START_STICKY_COMPATIBILITY
     }
 
     override fun onDestroy() {
-        AppState.isServiceRunning = false
-
         unregisterReceivers()
 
         if (Build.VERSION.SDK_INT >= 24) {
