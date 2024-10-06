@@ -296,7 +296,7 @@ class PlayerService : MediaBrowserServiceCompat() {
                 val name = intent?.getStringExtra(KEY_NAME) ?: ""
                 val uriStr = intent?.getStringExtra(KEY_URI) ?: ""
                 val uri = Uri.parse(uriStr)
-                val playlistItem = PlaylistItem(name, uri, uri.getAudioDuration())
+                val playlistItem = PlaylistItem(name, uri)
                 copyAndPlayPlaylistItem(playlistItem)
             }
         }
