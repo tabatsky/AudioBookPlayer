@@ -24,7 +24,7 @@
                 android:textSize="20sp"
                 android:padding="12dp"
                 app:bgColor="@{highlightablePlaylistItem.color}"
-                android:text="@{highlightablePlaylistItem.playlistItem.name}" />
+                android:text="@{highlightablePlaylistItem.playlistItem.title}" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"

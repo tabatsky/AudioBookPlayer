@@ -11,6 +11,7 @@ data class PlaylistItem(
 ) {
     private val duration = uri.getAudioDuration()
     val durationStr = duration.millisToTimeString()
+    val title = uri.getAudioTitle() ?: name
 }
 
 val colorTransparent = 0x00000000
@@ -30,10 +31,49 @@ data class HighlightablePlaylistItem(
 }
 
 fun Uri.getAudioDuration(): Int {
-    val mmr = MediaMetadataRetriever()
-    mmr.setDataSource(App.activityProvider.currentActivity?.applicationContext!!, this)
-    val durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-    val duration = durationStr!!.toInt()
+    return try {
+        val mmr = MediaMetadataRetriever()
+        mmr.setDataSource(App.activityProvider.currentActivity?.applicationContext!!, this)
+        val durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        val duration = durationStr!!.toInt()
 
-    return duration
+        duration
+    } catch (e: Exception) {
+        0
+    }
+}
+
+fun Uri.getAudioTitle(): String? {
+    return try {
+        val mmr = MediaMetadataRetriever()
+        mmr.setDataSource(App.activityProvider.currentActivity?.applicationContext!!, this)
+        val title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+
+        val cyrillic = 'а'..'я'
+        val latin = 'a'..'z'
+        val digits = '0'..'9'
+        val special = listOf(' ', '.', ',', '-', '—')
+
+        val symbolSet = title?.lowercase()?.toCharArray()?.toSet()?.toMutableSet()
+        val isCorrect = symbolSet?.let {
+            // TODO: use filter
+            cyrillic.forEach {
+                symbolSet.remove(it)
+            }
+            latin.forEach {
+                symbolSet.remove(it)
+            }
+            digits.forEach {
+                symbolSet.remove(it)
+            }
+            special.forEach {
+                symbolSet.remove(it)
+            }
+            symbolSet.isEmpty()
+        } ?: false
+
+        if (isCorrect) title else null
+    } catch (e: Exception) {
+        null
+    }
 }
