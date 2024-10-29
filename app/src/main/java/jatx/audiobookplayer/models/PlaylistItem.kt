@@ -46,7 +46,7 @@ fun Uri.getAudioDuration(): Int {
 val cyrillic = ('а'..'я').toSet()
 val latin = ('a'..'z').toSet()
 val digits = ('0'..'9').toSet()
-val special = setOf(' ', '.', ',', '-', '—')
+val special = setOf(' ', '.', ',', '-', '–', '—', '«', '»', '(', ')', ':', ';', '…', '?')
 
 fun Uri.getAudioTitle(): String? {
     return try {
@@ -54,17 +54,27 @@ fun Uri.getAudioTitle(): String? {
         mmr.setDataSource(App.activityProvider.currentActivity?.applicationContext!!, this)
         val title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
 
-        val symbolSet = title
+        val symbolSet1 = title
             ?.lowercase()
             ?.toCharArray()
-            ?.toList()
             ?.filter {
                 it !in cyrillic
                         && it !in latin
                         && it !in digits
                         && it !in special
             }
-        val isCorrect = symbolSet?.isEmpty() ?: false
+        val isEmpty1 = symbolSet1?.isEmpty() ?: false
+        val symbolSet2 = title
+            ?.lowercase()
+            ?.toCharArray()
+            ?.filter {
+                it in cyrillic
+                        || it in latin
+                        || it in digits
+            }
+        val isNotEmpty2 = symbolSet2?.isNotEmpty() ?: false
+
+        val isCorrect = isEmpty1 && isNotEmpty2
 
         if (isCorrect) title else null
     } catch (e: Exception) {
