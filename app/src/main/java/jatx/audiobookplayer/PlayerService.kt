@@ -19,6 +19,7 @@ import android.os.IBinder
 import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.telephony.TelephonyManager
 import android.text.TextUtils
 import android.util.Log
 import android.view.KeyEvent
@@ -48,6 +49,8 @@ import java.io.FileOutputStream
 
 const val CHANNEL_ID_SERVICE = "PlayerService"
 const val CHANNEL_NAME_SERVICE = "PlayerService"
+
+const val ACTION_PHONE_STATE = "android.intent.action.PHONE_STATE"
 
 class PlayerService : MediaBrowserServiceCompat() {
 
@@ -313,6 +316,16 @@ class PlayerService : MediaBrowserServiceCompat() {
         }
         registerExportedReceiver(clickTempoReceiver, IntentFilter(CLICK_TEMPO))
         broadcastReceivers.add(clickTempoReceiver)
+
+        val incomingCallReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (intent.getStringExtra(TelephonyManager.EXTRA_STATE) == TelephonyManager.EXTRA_STATE_RINGING) {
+                    pausePlayer()
+                }
+            }
+        }
+        registerExportedReceiver(incomingCallReceiver, IntentFilter(ACTION_PHONE_STATE))
+        broadcastReceivers.add(incomingCallReceiver)
     }
 
     private fun unregisterReceivers() {

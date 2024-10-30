@@ -93,6 +93,7 @@ class MainActivity : FragmentActivity() {
 
         checkNotificationPermissions()
         checkReadAudioPermissions()
+        checkReadPhoneStatePermissions()
         startService()
 
         try {
@@ -302,6 +303,21 @@ class MainActivity : FragmentActivity() {
                 )
                 .check()
         }
+    }
+
+    private fun checkReadPhoneStatePermissions() {
+        val permissionListener = object : PermissionListener {
+            override fun onPermissionGranted() {}
+
+            override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}
+        }
+
+        TedPermission.create()
+            .setPermissionListener(permissionListener)
+            .setPermissions(
+                Manifest.permission.READ_PHONE_STATE
+            )
+            .check()
     }
 
     private fun showProgressDialog(show: Boolean) {
