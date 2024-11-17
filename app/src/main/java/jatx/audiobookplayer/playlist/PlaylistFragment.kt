@@ -46,6 +46,8 @@ class PlaylistFragment : Fragment() {
                     App.activityProvider.currentActivity?.let {
                         AppState.needPauseFlag = true
                         it.clickPlaylistItem(lastPlaylistItem)
+                        val position = playlistItems.indexOf(lastPlaylistItem)
+                        playlistFragmentBinding.rvPlaylist.scrollToPosition(position)
                     }
                 }
             }
