@@ -366,6 +366,7 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     private fun copyAndPlayPlaylistItem(playlistItem: PlaylistItem) {
+        App.settings.lastPlaylistItem = playlistItem
         notifyDuration(0)
         scope.launch {
             showProgressDialog(true)
