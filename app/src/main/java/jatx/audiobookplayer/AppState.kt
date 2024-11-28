@@ -73,6 +73,18 @@ object AppState {
 
     var needPauseFlag = false
 
+    fun reset() {
+        _mp3Files.value = listOf()
+        _activePlaylistItem.value = null
+        _playlistName.value = App.settings.playlistName
+        _isPlaying.value = false
+        _currentPosition.value = 0
+        _duration.value = 0
+        _progress.value = null
+        _isProgressDialogVisible.value = false
+        needPauseFlag = false
+    }
+
     fun updateCurrentPosition(value: Int) {
         _currentPosition.value = value
     }

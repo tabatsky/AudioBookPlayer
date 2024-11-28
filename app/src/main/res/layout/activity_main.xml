@@ -34,6 +34,14 @@
                 android:text="1.0"
                 style="@style/Widget.AppCompat.Button.Colored"
                 />
+            <Button
+                android:id="@+id/btn_finish_app"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Finish"
+                style="@style/Widget.AppCompat.Button.Colored"
+                />
         </LinearLayout>
 
         <androidx.fragment.app.FragmentContainerView

@@ -37,6 +37,8 @@ const val CLICK_PROGRESS = "jatx.audiobookplayer.CLICK_PROGRESS"
 const val CLICK_PLAYLIST_ITEM = "jatx.audiobookplayer.CLICK_PLAYLIST_ITEM"
 const val CLICK_TEMPO = "jatx.audiobookplayer.CLICK_TEMPO"
 
+const val CLICK_FINISH_APP = "jatx.audiobookplayer.CLICK_FINISH_APP"
+
 const val NOTIFY_PLAYLIST_CHANGED = "jatx.audiobookplayer.NOTIFY_PLAYLIST_CHANGED"
 
 const val KEY_PROGRESS = "progress"
@@ -91,6 +93,8 @@ class MainActivity : FragmentActivity() {
                 as NavHostFragment
         navController = navHost.navController
 
+        AppState.reset()
+
         checkNotificationPermissions()
         checkReadAudioPermissions()
         checkReadPhoneStatePermissions()
@@ -106,6 +110,10 @@ class MainActivity : FragmentActivity() {
         binding.viewModel = viewModel
 
         binding.btnSelectTempo.text = tempo.toString()
+
+        binding.btnFinishApp.setOnClickListener {
+            clickFinishApp()
+        }
 
         binding.btnOpenDir.setOnClickListener {
             openDirResultLauncher.launch(App.settings.audioBooksDirUri)
@@ -260,6 +268,22 @@ class MainActivity : FragmentActivity() {
         val intent = Intent(CLICK_TEMPO)
         intent.putExtra(KEY_TEMPO, tempoStr)
         sendBroadcast(intent)
+    }
+
+    private fun clickFinishApp() {
+        val dialog = AlertDialog
+            .Builder(this)
+            .setTitle("Are you sure?")
+            .setMessage("App will be finished")
+            .setPositiveButton("Ok") { _, _ ->
+                val intent = Intent(CLICK_FINISH_APP)
+                sendBroadcast(intent)
+                finish()
+            }
+            .setNegativeButton("Cancel") { dialogInterface, _ ->
+                dialogInterface.dismiss()
+            }
+        dialog.show()
     }
 
     private fun checkNotificationPermissions() {

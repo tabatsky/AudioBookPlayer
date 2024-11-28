@@ -142,6 +142,8 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
+        stopAndReleasePlayer()
+        mediaSessionCompat.release()
         unregisterReceivers()
 
         if (Build.VERSION.SDK_INT >= 24) {
@@ -326,6 +328,14 @@ class PlayerService : MediaBrowserServiceCompat() {
         }
         registerExportedReceiver(incomingCallReceiver, IntentFilter(ACTION_PHONE_STATE))
         broadcastReceivers.add(incomingCallReceiver)
+
+        val finishAppReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                stopSelf()
+            }
+        }
+        registerExportedReceiver(finishAppReceiver, IntentFilter(CLICK_FINISH_APP))
+        broadcastReceivers.add(finishAppReceiver)
     }
 
     private fun unregisterReceivers() {
