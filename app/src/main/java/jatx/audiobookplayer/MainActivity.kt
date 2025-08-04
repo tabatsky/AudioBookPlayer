@@ -45,6 +45,7 @@ const val KEY_PROGRESS = "progress"
 const val KEY_NAME = "name"
 const val KEY_URI = "uri"
 const val KEY_TEMPO = "tempo"
+const val KEY_PLAY = "play"
 
 class MainActivity : FragmentActivity() {
 
@@ -207,6 +208,9 @@ class MainActivity : FragmentActivity() {
     }
 
     fun openPlaylist(playlistName: String) {
+        if (AppState.needPauseFlag) {
+            clickPause()
+        }
         if (playlistName != AppState.playlistName.value) {
             notifyPlaylistChanged()
             App.settings.playlistName = playlistName
@@ -223,10 +227,11 @@ class MainActivity : FragmentActivity() {
         sendBroadcast(intent)
     }
 
-    fun clickPlaylistItem(playlistItem: PlaylistItem) {
+    fun clickPlaylistItem(playlistItem: PlaylistItem, play: Boolean) {
         val intent = Intent(CLICK_PLAYLIST_ITEM)
         intent.putExtra(KEY_NAME, playlistItem.name)
         intent.putExtra(KEY_URI, playlistItem.uri.toString())
+        intent.putExtra(KEY_PLAY, play)
         sendBroadcast(intent)
     }
 

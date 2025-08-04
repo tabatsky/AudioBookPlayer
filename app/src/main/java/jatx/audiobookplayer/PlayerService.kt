@@ -240,7 +240,7 @@ class PlayerService : MediaBrowserServiceCompat() {
         val clickPlayReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 scope.launch {
-                    applyTempoAndPlayActiveFile()
+                    applyTempoAndPlayActiveFile(true)
                 }
             }
         }
@@ -300,9 +300,10 @@ class PlayerService : MediaBrowserServiceCompat() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val name = intent?.getStringExtra(KEY_NAME) ?: ""
                 val uriStr = intent?.getStringExtra(KEY_URI) ?: ""
-                val uri = Uri.parse(uriStr)
+                val play = intent?.getBooleanExtra(KEY_PLAY, false) ?: false
+                val uri = uriStr.toUri()
                 val playlistItem = PlaylistItem(name, uri)
-                copyAndPlayPlaylistItem(playlistItem)
+                copyAndSelectPlaylistItem(playlistItem, play)
             }
         }
         registerExportedReceiver(clickPlaylistItemReceiver, IntentFilter(CLICK_PLAYLIST_ITEM))
@@ -349,6 +350,7 @@ class PlayerService : MediaBrowserServiceCompat() {
         stopAndReleasePlayer()
         cleanPlaylistDir()
         notifyProgress(0, 1)
+        activeAudioFile = null
     }
 
     private fun notifyProgress(currentPosition: Int, duration: Int) {
@@ -375,7 +377,7 @@ class PlayerService : MediaBrowserServiceCompat() {
         AppState.updateProgressDialogVisible(show)
     }
 
-    private fun copyAndPlayPlaylistItem(playlistItem: PlaylistItem) {
+    private fun copyAndSelectPlaylistItem(playlistItem: PlaylistItem, play: Boolean) {
         App.settings.lastPlaylistItem = playlistItem
         notifyDuration(0)
         scope.launch {
@@ -388,7 +390,7 @@ class PlayerService : MediaBrowserServiceCompat() {
                         AppState.updatePlaylistItem(playlistItem)
                         Log.e("last progress", App.settings.lastProgress.toString())
                         progressBackup = App.settings.lastProgress
-                        applyTempoAndPlayActiveFile()
+                        applyTempoAndPlayActiveFile(play)
                     }
                 }
             }
@@ -416,8 +418,8 @@ class PlayerService : MediaBrowserServiceCompat() {
         return newFile.absolutePath
     }
 
-    private suspend fun applyTempoAndPlayActiveFile() {
-        isPlaying = true
+    private suspend fun applyTempoAndPlayActiveFile(play: Boolean) {
+        isPlaying = play
         applyTempo(App.settings.tempo.toString())
     }
 
@@ -448,6 +450,7 @@ class PlayerService : MediaBrowserServiceCompat() {
                     override fun onPlaybackStateChanged(playbackState: Int) {
                         when (playbackState) {
                             Player.STATE_ENDED -> {
+                                println("AAAA ended")
                                 stopAndReleasePlayer()
                                 notifyDuration(0)
                                 App.settings.lastProgress = 0f
@@ -459,11 +462,11 @@ class PlayerService : MediaBrowserServiceCompat() {
                 })
                 val playbackParam = PlaybackParameters(tempo, 1.0f)
                 player?.playbackParameters = playbackParam
-                player?.play()
                 while (player?.playbackState != Player.STATE_READY) {
                     delay(50)
                 }
                 val duration = player?.duration ?: 0L
+                AppState.needPauseFlag = false
                 notifyDuration(duration.toInt())
                 progressBackup?.let {
                     Log.e("prog backup", progressBackup.toString())
@@ -474,6 +477,12 @@ class PlayerService : MediaBrowserServiceCompat() {
                 } ?: run {
                     val progressMs = ((App.settings.lastProgress * duration).toInt() - 3000).takeIf { it >= 0 } ?: 0
                     player?.seekTo(progressMs.toLong())
+                }
+                println("AAAA play play ${player?.playbackState}")
+                player?.play()
+            } ?: run {
+                AppState.playlistItems.value?.firstOrNull()?.let {
+                    copyAndSelectPlaylistItem(it, true)
                 }
             }
         }
@@ -503,6 +512,12 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     private fun stopAndReleasePlayer() {
+        println("AAAA stop")
+        try {
+            throw IllegalStateException("AAAA stop")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         isPlaying = false
         AppState.updateIsPlaying(false)
 
@@ -533,7 +548,7 @@ class PlayerService : MediaBrowserServiceCompat() {
                 val nextIndex = index + 1
                 if (nextIndex < count) {
                     val nextPlaylistItem = playlistItems[nextIndex]
-                    copyAndPlayPlaylistItem(nextPlaylistItem)
+                    copyAndSelectPlaylistItem(nextPlaylistItem, true)
                 } else {
                     showToast("No tracks after")
                 }
@@ -550,7 +565,7 @@ class PlayerService : MediaBrowserServiceCompat() {
                 if (index > 0) {
                     val prevIndex = index - 1
                     val prevPlaylistItem = playlistItems[prevIndex]
-                    copyAndPlayPlaylistItem(prevPlaylistItem)
+                    copyAndSelectPlaylistItem(prevPlaylistItem, true)
                 } else {
                     showToast("No tracks before")
                 }
