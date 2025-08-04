@@ -9,10 +9,14 @@ import jatx.audiobookplayer.models.HighlightablePlaylistItem
 import jatx.audiobookplayer.models.LibraryItem
 import jatx.audiobookplayer.models.PlaylistItem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 
 object AppState {
+
+    private val _isProgressDialogVisible = MutableLiveData(false)
+    val isProgressDialogVisible: LiveData<Boolean> = _isProgressDialogVisible
 
     private val _mp3Files = MutableLiveData<List<DocumentFile>>(listOf())
     private val mp3Files: LiveData<List<DocumentFile>> = _mp3Files
@@ -68,9 +72,6 @@ object AppState {
     private val _progress: MutableLiveData<Float?> = MutableLiveData(null)
     val progress: LiveData<Float?> = _progress
 
-    private val _isProgressDialogVisible = MutableLiveData(false)
-    val isProgressDialogVisible: LiveData<Boolean> = _isProgressDialogVisible
-
     var needPauseFlag = false
 
     fun reset() {
@@ -101,8 +102,14 @@ object AppState {
         _isPlaying.value = value
     }
 
-    fun updatePlaylistName(name: String) {
+    suspend fun updatePlaylistName(name: String) {
+        updateProgressDialogVisible(true)
+        val items = playlistItems.value
         _playlistName.value = name
+        while (playlistItems.value == items) {
+            delay(25L)
+        }
+        updateProgressDialogVisible(false)
     }
 
     fun updatePlaylistItem(playlistItem: PlaylistItem?) {
@@ -114,8 +121,17 @@ object AppState {
     }
 
     suspend fun updateMp3Files(pickedDir: DocumentFile) {
+        updateProgressDialogVisible(true)
         val files = withContext(Dispatchers.IO) { scanPickedDirForMp3(pickedDir) }
         _mp3Files.value = files
+        if (files.isNotEmpty()) {
+            while (libraryItems.value?.isEmpty() ?: true) delay(25)
+            if (App.settings.playlistName.isNotEmpty() &&
+                libraryItems.value!!.any {App.settings.playlistName == it.name}) {
+                while (highlightablePlaylistItems.value?.isEmpty() ?: true) delay(25)
+            }
+        }
+        updateProgressDialogVisible(false)
     }
 
     private fun scanPickedDirForMp3(pickedDir: DocumentFile): List<DocumentFile> {

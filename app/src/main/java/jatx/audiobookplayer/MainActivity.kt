@@ -56,10 +56,10 @@ class MainActivity : FragmentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
-    private var tempo: Double = App.settings.tempo
+    private var tempo: Double
+        get() = App.settings.tempo
         set(value) {
-            val needApply = field != value
-            field = value
+            val needApply = App.settings.tempo != value
             App.settings.tempo = value
             binding.btnSelectTempo.text = value.toString()
 
@@ -210,7 +210,9 @@ class MainActivity : FragmentActivity() {
         if (playlistName != AppState.playlistName.value) {
             notifyPlaylistChanged()
             App.settings.playlistName = playlistName
-            AppState.updatePlaylistName(playlistName)
+            lifecycleScope.launch {
+                AppState.updatePlaylistName(playlistName)
+            }
         }
         val action = LibraryFragmentDirections.actionLibraryFragmentToPlaylistFragment()
         navController.navigate(action)
@@ -276,6 +278,7 @@ class MainActivity : FragmentActivity() {
             .setTitle("Are you sure?")
             .setMessage("App will be finished")
             .setPositiveButton("Ok") { _, _ ->
+                AppState.reset()
                 val intent = Intent(CLICK_FINISH_APP)
                 sendBroadcast(intent)
                 finish()
